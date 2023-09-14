@@ -35,7 +35,7 @@ def evaluate_code():
         else:
             # Create a visual diff between actual and expected output and show if any there are whitespace differences
             diff = difflib.ndiff(actual_output.splitlines(keepends=True), expected_output.splitlines(keepends=True))
-            diff_str = ''.join(diff)
+            diff_str = '\n'.join([x for x in diff if x != '\n'])
 
             return jsonify({'success': False, 'message': 'Output does not match the expected output.',
                             'diff': diff_str, 'expected_output': expected_output, 'actual_output': actual_output})
