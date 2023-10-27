@@ -9,7 +9,6 @@ A simple web-based Python code evaluator using Flask.
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -23,8 +22,8 @@ The **Code Evaluator** is a web-based application developed using the Flask fram
 - Compare the actual output with the expected output.
 - Visual diff between actual and expected output.
 - Option to upload an expected output file.
-- Error handling for code execution errors.
-- Responsive and user-friendly interface.
+- Option to manually enter the expected output.
+- Create an assignment with a description and the expected output ([see below](#createpost-an-assignment-using-the-api)).
 
 ## Prerequisites
 
@@ -74,7 +73,9 @@ Before you begin, ensure you have met the following requirements:
 4. Optionally, upload an expected output file or manually enter the expected output in the "Expected Output" textarea.
 5. Click the "Evaluate Code" button to run the code and see the evaluation results.
 
-or
+_or (see below [Evaluate Code](#createpost-an-assignment-using-the-api) & [Post/Create Assignment](#createpost-an-assignment-using-the-api))_
+
+### Evaluate code using the API
 
 Use the API by calling the endpoint `/evaluate` with a POST request and passing the Python code and expected output as
 form data.
@@ -99,36 +100,53 @@ In this case, the response will be a JSON object with the following structure:
 }
 ```
 
+### ![NEW](https://img.shields.io/badge/-New-green) Create/Post an assignment using the API
 
-## Project Structure
-    
- ```
- code-evaluator
- ├── run.py
- ├── requirements.txt
- ├── app
- │   ├── __init__.py
- │   ├── routes.py
- │   ├── templates
- │   │   └── index.html
- │   ├── static
- │   │   ├── script.js
- │   │   └── style.css
- ```
+Use the API by calling the endpoint `/post-assignment` with a POST request
+and passing the assignment description and expected output like the following example:
+
+```json
+{
+  "description": "Write a Python program to print \"Hello, World!\".",
+  "expected_output": "Hello, World!\n"
+}
+```
+
+In this case, the response will be a JSON object with the following structure:
+
+```json
+{
+    "key": "uid",
+    "message": "Assignment created successfully.",
+    "success": true
+}
+```
+
+The `key` is a unique identifier for the assignment.
+You can use this key to retrieve the assignment details by calling the http://localhost:8080/?assigment=uid for example.
+
 
 ## Screenshots
 
-1. Code Evaluator home page.
+1. Home page.
 
-   ![Code Evaluator home page](https://i.ibb.co/0sZp1Qy/Screenshot-2023-09-14-at-12-29-26-PM.png)
+   ![Code Evaluator home page](https://gcdnb.pbrd.co/images/Rv6bUmhMDg22.png)
 
-2. Code Evaluator success results page.
+2. Assignment page with the description and expected output.
 
-   ![Code Evaluator success results page](https://i.ibb.co/6HZS63f/Screenshot-2023-09-14-at-12-29-16-PM.png)
+   ![Code Evaluator assignment page](https://gcdnb.pbrd.co/images/YDQLDrr2MHBI.png)
 
-3. Code Evaluator failure results page.
+3. Assignment page with user's wrong output.
 
-   ![Code Evaluator failure results page](https://i.ibb.co/zh4cLWC/Screenshot-2023-09-14-at-12-28-52-PM.png)
+   ![Code Evaluator with wrong output](https://gcdnb.pbrd.co/images/Zghnrm87RAlE.png?o=1)
+
+4. Assignment page with user's correct output.
+
+    ![Code Evaluator with correct output](https://gcdnb.pbrd.co/images/0Wf1GwP96u10.png)
+
+5. Assignment page with user's syntax error.
+
+    ![Code Evaluator with syntax error](https://gcdnb.pbrd.co/images/rf72OqDZ8hKK.png)
 
 ## Contributing
 

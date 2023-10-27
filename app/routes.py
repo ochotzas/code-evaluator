@@ -1,44 +1,51 @@
-import difflib
-import sys
-from io import StringIO
-
 from flask import request, jsonify, render_template
 
 from app import app
+from .common.enums.routes import Routes
+from .utils import database
+from .utils.evaluate import execute_code
 
 
-@app.route('/', methods=['GET'])
+@app.route(Routes.INDEX.value, methods=['GET'])
 def index():
-    return render_template('index.html')
+    assigment_key = request.args.get('assigment')
+
+    assigment = database.get_assignment(assigment_key)
+
+    return render_template('index.html', expected_output=assigment.expected_code,
+                           assigment_description=assigment.description, assigment_timestamp=assigment.timestamp,
+                           assigment_key=assigment_key)
 
 
-@app.route('/evaluate', methods=['POST'])
+@app.route(Routes.EVALUATE.value, methods=['POST'])
 def evaluate_code():
     data = request.get_json()
     code = data.get('code')
     expected_output = data.get('expected_output')
 
-    try:
-        exec_result = {}  # Define exec_result as a dictionary
-        # Redirect stdout to capture the output
-        old_stdout = sys.stdout
-        sys.stdout = StringIO()  # Create a StringIO object to capture the output
+    success, message, diff, actual_output = execute_code(code, expected_output)
 
-        exec(code, globals(), exec_result)
-        actual_output = sys.stdout.getvalue()  # Get the captured output
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'message': message,
+                        'diff': diff, 'expected_output': expected_output, 'actual_output': actual_output})
 
-        sys.stdout = old_stdout  # Restore the original stdout
 
-        # Check if the actual output matches the expected output
-        if actual_output == expected_output:
-            return jsonify({'success': True, 'message': 'Output matches the expected output.'})
-        else:
-            # Create a visual diff between actual and expected output and show if any there are whitespace differences
-            diff = difflib.ndiff(actual_output.splitlines(keepends=True), expected_output.splitlines(keepends=True))
-            diff_str = '\n'.join([x for x in diff if x != '\n'])
+@app.route(Routes.POST_ASSIGNMENT.value, methods=['POST'])
+def post_assigment():
+    data = request.get_json()
+    expected_output = data.get('expected_output')
+    description = data.get('description')
 
-            return jsonify({'success': False, 'message': 'Output does not match the expected output.',
-                            'diff': diff_str, 'expected_output': expected_output, 'actual_output': actual_output})
-    except Exception as e:
-        return jsonify(
-            {'success': False, 'message': 'Error occurred while executing the code.', 'error_message': str(e)})
+    key = database.create_assignment(expected_output, description)
+
+    if key is not None:
+        return jsonify({'success': True, 'message': 'Assignment created successfully.', 'key': key})
+    else:
+        return jsonify({'success': False, 'message': 'Error occurred while creating the assignment.'})
+
+
+@app.route(Routes.GET_ALL_ASSIGNMENTS.value, methods=['GET'])
+def get_all_assignments():
+    return jsonify({'success': True, 'assignments': database.get_all_assignments()})
