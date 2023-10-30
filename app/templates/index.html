@@ -13,12 +13,20 @@
     <link href="../static/style.css" rel="stylesheet">
 </head>
 <body class="full-screen">
-<div class="container">
+<div class="container mx-auto p-8">
 
-    <h1 class="text-2xl font-semibold mb-4">Code Evaluator <span class="text-gray-400 text-md"> | Python</span></h1>
-    <div class="flex">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-semibold">Code_Evaluator<span class="text-gray-400 text-md">/Python</span></h1>
+        <a class="bg-green-500 text-white py-2 px-4 rounded-full hover:bg-green-600 focus:outline-none focus:ring focus:border-green-300"
+           href="post-assignment"
+           id="create-assignment-btn">
+            <i class="fas fa-plus-circle mr-2"></i>Create Assignment
+        </a>
+    </div>
 
-        <div class="input-column w-1/2">
+    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0">
+
+        <div class="input-column w-full md:w-1/2">
             <form class="space-y-4" id="code-form">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="code"><i class="fas fa-code"></i> Enter
@@ -33,7 +41,7 @@
                     <label class="block text-gray-700 font-medium" for="file-input"><i class="fas fa-file"></i> Upload
                         Expected Output (optional):</label>
                     <input accept=".txt"
-                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+                           class="w-full md:w-auto px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
                            id="file-input"
                            type="file">
                     <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring focus:border-red-300"
@@ -58,7 +66,7 @@
             </form>
         </div>
 
-        <div class="result-column w-1/2" id="result">
+        <div class="result-column w-full md:w-1/2" id="result">
             <div class="m-4">
                 <h2 class="text-xl font-semibold mb-4">No code evaluated yet.</h2>
                 <p class="text-gray-500">Enter some code, write the expected output or upload a file, and click the
@@ -87,7 +95,6 @@
         var timestamp = "{{ assigment_timestamp }}";
         var timeDifference = Math.floor((new Date() - new Date(timestamp)) / (1000 * 60 * 60 * 24));
         var timestampElement = document.getElementById("timestamp");
-
         if (timeDifference < 1) {
             timestampElement.textContent = "Today";
         } else if (timeDifference === 1) {
@@ -104,7 +111,6 @@
     </script>
     {% endif %}
 </div>
-
 <script src="../static/script.js"></script>
 </body>
 </html>

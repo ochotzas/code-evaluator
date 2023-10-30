@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Assignment</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="../static/style.css" rel="stylesheet">
+    <style>
+        .popup {
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="full-screen">
+<div class="container mx-auto p-8">
+
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-semibold">Code_Evaluator<span class="text-gray-400 text-md">/Python</span><span class="text-green-400 text-md">/Create_New_Assignment</span></h1>
+        <a class="bg-gray-400 text-white py-2 px-4 rounded-full hover:bg-gray-600 focus:outline-none focus:ring focus:border-green-300"
+           href="/">
+            <i class="fas fa-home mr-2"></i>Home
+        </a>
+    </div>
+
+    <form id="assignment-form" class="space-y-4">
+        <div class="form-element">
+            <label class="block text-gray-700 font-medium mb-2" for="description">
+                Assignment Description:
+            </label>
+            <textarea class="w-full h-40 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+                      id="description" name="description" placeholder="Enter assignment description..."></textarea>
+        </div>
+        <div class="form-element">
+            <label class="block text-gray-700 font-medium mb-2" for "expected-output">
+                Expected Output:
+            </label>
+            <textarea class="w-full h-40 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+                      id="expected-output" name="expected_output" placeholder="Enter expected output..."></textarea>
+        </div>
+        <div class="flex items-center">
+            <button class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring focus:border-blue-300"
+                    id="create-assignment-btn" type="submit">
+                <i class="fas fa-plus-circle mr-2"></i>Create Assignment
+            </button>
+            <button class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 ml-2"
+                    id="show-assignments-btn" type="button">
+                <i class="fas fa-list mr-2"></i>Show Assignments
+            </button>
+        </div>
+    </form>
+    <div id="response-container" class="popup">
+        <div class="popup-content bg-white">
+            <p id="success-message" class="text-green-500 mb-4">
+                <i class="fas fa-check-circle mr-2"></i><span></span>
+            </p>
+            <p id="error-message" class="text-red-500 mb-4">
+                <i class="fas fa-times-circle mr-2"></i>Error: <span></span>
+            </p>
+            <button id="close-popup" class="bg-red-500 text-white py-2 px-4 rounded hover-bg-red-600 mt-2">
+                Close
+            </button>
+        </div>
+    </div>
+    <div id="assignments-list" class="hidden mt-4">
+        <h2 class="text-2xl font-semibold mb-4">All Assignments</h2>
+        <ul id="assignments" class="list-disc pl-6"></ul>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const assignmentForm = document.getElementById("assignment-form");
+    const createAssignmentBtn = document.getElementById("create-assignment-btn");
+    const showAssignmentsBtn = document.getElementById("show-assignments-btn");
+    const responseContainer = document.getElementById("response-container");
+    const successMessage = document.getElementById("success-message");
+    const errorMessage = document.getElementById("error-message");
+    const closePopupBtn = document.getElementById("close-popup");
+    const assignmentsList = document.getElementById("assignments-list");
+    const assignments = document.getElementById("assignments");
+
+    createAssignmentBtn.addEventListener("click", function () {
+        responseContainer.style.display = "none";
+    });
+
+    showAssignmentsBtn.addEventListener("click", function () {
+        const assignmentLinks = JSON.parse(localStorage.getItem("assignmentLinks") || "[]");
+
+        if (assignmentLinks.length > 0) {
+            assignments.innerHTML = assignmentLinks.map(link => {
+                const assignmentData = JSON.parse(localStorage.getItem(link));
+                const description = assignmentData ? assignmentData.description : 'No Description';
+                const time = assignmentData ? assignmentData.time : 'Unknown Time';
+                return `<li>
+                    <span>${description.length <= 20 ? description : description.substring(0, 20) + '...'}</span>
+                    <span>${time}</span>
+                    <a href="${link}" class="text-blue-500 underline" target="_blank">
+                        Open Assignment
+                    </a>
+                </li>`;
+            }).join("");
+            assignmentsList.classList.remove("hidden");
+        } else {
+            assignments.innerHTML = '<p>No assignments have been created yet.</p>';
+            assignmentsList.classList.remove("hidden");
+        }
+    });
+
+    assignmentForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const description = document.getElementById("description").value;
+        const expectedOutput = document.getElementById("expected-output").value;
+
+        if (description.trim() === "" || expectedOutput.trim() === "") {
+            errorMessage.innerHTML = "<i class='fas fa-times-circle mr-2'></i>Error: Description and Expected Output cannot be empty.";
+            responseContainer.style.display = "flex";
+            successMessage.style.display = "none";
+            errorMessage.style.display = "block";
+            return;
+        }
+
+        const data = {
+            description: description,
+            expected_output: expectedOutput,
+        };
+
+        fetch('http://localhost:8080/post-assignment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const key = data.key;
+                const successMsg = `Assignment created successfully <a href="http://localhost:8080/?assignment=${key}" class="text-blue-500 underline">here</a>.`;
+                successMessage.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${successMsg}`;
+                responseContainer.style.display = "flex";
+                errorMessage.style.display = "none";
+                successMessage.style.display = "block";
+
+                // Store the link and timestamp locally
+                const assignmentLinks = JSON.parse(localStorage.getItem("assignmentLinks") || "[]");
+                assignmentLinks.push(`http://localhost:8080/?assignment=${key}`);
+                localStorage.setItem("assignmentLinks", JSON.stringify(assignmentLinks));
+
+                const timestamp = new Date().toLocaleString();
+                localStorage.setItem(`http://localhost:8080/?assignment=${key}`, JSON.stringify({
+                    description: description,
+                    time: timestamp,
+                }));
+            } else {
+                errorMessage.innerHTML = `<i class="fas fa-times-circle mr-2"></i>Error: ${data.message}`;
+                responseContainer.style.display = "flex";
+                successMessage.style.display = "none";
+                errorMessage.style.display = "block";
+            }
+        })
+        .catch(error => {
+            errorMessage.innerHTML = `<i class="fas fa-times-circle mr-2"></i>Error: ${error}`;
+            responseContainer.style.display = "flex";
+            successMessage.style.display = "none";
+            errorMessage.style.display = "block";
+        });
+    });
+
+    closePopupBtn.addEventListener("click", function () {
+        responseContainer.style.display = "none";
+    });
+});
+</script>
+</body>
+</html>

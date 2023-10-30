@@ -8,7 +8,7 @@ from .utils.evaluate import execute_code
 
 @app.route(Routes.INDEX.value, methods=['GET'])
 def index():
-    assigment_key = request.args.get('assigment')
+    assigment_key = request.args.get('assignment')
 
     assigment = database.get_assignment(assigment_key)
 
@@ -32,9 +32,13 @@ def evaluate_code():
                         'diff': diff, 'expected_output': expected_output, 'actual_output': actual_output})
 
 
-@app.route(Routes.POST_ASSIGNMENT.value, methods=['POST'])
+@app.route(Routes.POST_ASSIGNMENT.value, methods=['POST', 'GET'])
 def post_assigment():
+    if request.method == 'GET':
+        return render_template('assigment.html')
+
     data = request.get_json()
+
     expected_output = data.get('expected_output')
     description = data.get('description')
 
